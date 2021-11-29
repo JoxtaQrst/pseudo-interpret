@@ -19,7 +19,8 @@ void CreateInteger(int value, char name[]) {
             exit(400);
         }
         if (strcmp(variable[i].name, name) == 0) {
-            printf("Warning - variable %.*s is already defined. Setting value to 0.\n\n", strlen(name), name);
+            printf("Warning - variable %.*s is already defined. Setting value to 0.\n\n", 
+                strlen(name), name);
             variable[i].value = 0;
             return ;
         }
@@ -33,7 +34,8 @@ void CreateInteger(int value, char name[]) {
     for (int k = 0; k < strlen(name); k++)
         variable[i].name[k] = name[k];
 
-    printf("Created variable %.*s of int type on position %d in struct. Value %d.\n\n", strlen(name), name, i, value);
+    printf("Created variable %.*s of int type on position %d in struct. Value %d.\n\n", 
+        strlen(name), name, i, value);
 }
 
 //function to check if a certain key is the first part of the line
@@ -71,10 +73,54 @@ int CheckVar(data vars[], char key[]) {
         //printf("name in struct: <%s>\n", vars[i].name);
 
         if (strcmp(vars[i].name, key) == 0)
-            return 1;
+            return i;
     }
     //printf("///////////////////////////////////\n");
     return 0;
+}
+
+//function to calculate a given expression
+int CalculateExpr(char expression[]) {
+    /*
+        an expression is composed of variables or numbers and operands, such as:
+            ~ multiplication - *
+            ~ division - /
+            ~ modulo - %
+            ~ addition - +
+            ~ subtraction - -
+    
+        to calculate the expressions, we will use this large function 
+    which will return or provide the data to other functions (or itself)
+        we will use functions:
+            ~ add()
+            ~ subtract()
+            ~ divide()
+            ~ modulo()
+            ~ multiply()
+    */
+    int value = 0;
+
+    //check if the expression is a number
+    int i = 0;
+    char numbers[] = {"0123456789"};
+    bool isNum = true;
+    while (i < strlen(expression)) {
+        if (!strchr(numbers, expression[i++])) {
+            isNum = false;
+            break;
+        }
+        i++;
+    }
+    if (isNum) {
+        for (int i = strlen(expression)-2; i >= 0; i--) {
+            value = value * 10 + (expression[i] - 48); 
+        }
+
+        printf("Assigned value %d.\n", value);
+        return value;
+    }
+
+    return -1;
 }
 
 int main() {
@@ -88,7 +134,7 @@ int main() {
     char line[1023];
     int totalLine = 0, codeLine = 0, commentLine = 0;
     while (fgets(line, sizeof(line), input)) {
-        bool var = false;
+        int var = 0;
 
         //count the lines for debug
         CountLines(totalLine, codeLine, commentLine, line);
@@ -151,8 +197,31 @@ int main() {
 
             //now we need to check if the name is found in the struct
             var = CheckVar(variable, name);
-            if (var) {
-                printf("Variable %.*s is defined.\n", strlen(name), name);
+            if (var >= 0) {
+                printf("Variable %.*s is defined.\n", strlen(name), name);//after the name, we have " = " so 3 chars. 
+                //after that, we are in the expression
+                i += 3; //MIGHT BE 3 NEED TO CHECK
+
+                //we are now in the expression and we will save it in an array
+                k = 0;
+                char expression[1023] = {0};
+                while(i < strlen(line)) {
+                    expression[k++] = line[i++];
+                }
+                printf("Found expression %.*s = %.*s on line %d.\n", 
+                    strlen(name), name, 
+                    strlen(expression)-1, expression, 
+                    totalLine);
+                
+                int value = CalculateExpr(expression);
+                if (value != -1) {
+                    variable[var].value = value;
+                    printf("Assigned value %d to variable %.*s.\n", 
+                        variable[var].value, 
+                        strlen(variable[var].name), variable[var].name);
+                }
+
+                printf("\n");
             }
             else {
                 printf("Variable %.*s is not defined. Error on line %d.\n",
@@ -161,20 +230,6 @@ int main() {
                 printf("name <%s>\n", name);
                 //exit(200);
             }
-            //after the name, we have " = " so 3 chars. 
-            //after that, we are in the expression
-            i += 3; //MIGHT BE 3 NEED TO CHECK
-
-            //we are now in the expression and we will save it in an array
-            k = 0;
-            char expression[1023] = {0};
-            while(i < strlen(line)) {
-                expression[k++] = line[i++];
-            }
-            printf("Found expression %.*s = %.*s on line %d.\n\n", 
-                strlen(name), name, 
-                strlen(expression)-1, expression, 
-                totalLine);
         
         }//if the line does not match any of the defined operations and is NOT empty and NOT a comment, error 1000
         else {
@@ -187,9 +242,9 @@ int main() {
     }
 
     //for debug
-    printf("Total lines: %d \n", totalLine);
-    printf("Code lines: %d \n", codeLine);
-    printf("Comment lines: %d \n", commentLine);
+    printf("Total lines: %d\n", totalLine);
+    printf("Code lines: %d\n", codeLine);
+    printf("Comment lines: %d\n", commentLine);
 
     return 0;
 }
