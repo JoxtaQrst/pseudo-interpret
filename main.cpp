@@ -186,6 +186,7 @@ int main() {
         
     }
 
+    //for debug
     printf("Total lines: %d \n", totalLine);
     printf("Code lines: %d \n", codeLine);
     printf("Comment lines: %d \n", commentLine);
