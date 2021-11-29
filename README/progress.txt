@@ -1,0 +1,18 @@
+What we have so far:
+    - read the input
+    - functions!:
+        * function which checks if the first chars in a line are whatever we want them to be
+        * function which helps declare an integer in the struct and checks if the int is already declared
+        * function to count lines
+        * calculate math expressions (WIP)
+            /\ to calculate the expression we must:
+                1. extract the expression and put it in a char array
+                2. find a way to use the variables and numbers
+                3. take care of the signs
+                4. take care of the parantheses
+    - check if a line is code or comment and count them. (line number is used to print errors)
+    - extract int variables and save them in a struct containing:
+        * name
+        * value
+        * bool value which represents whether or not the position is used
+    

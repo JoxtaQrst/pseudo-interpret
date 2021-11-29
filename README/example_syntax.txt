@@ -1,0 +1,34 @@
+//this is a test syntax. this is what it should look like. its like C, but cheaper.
+int x
+int y
+int a
+int b
+
+//example code here
+x = x + 1
+x = x * 1
+x = 0
+
+//open a file in a variable. select filename. select an opening mode (r, w, rw, etc)
+fopen([variable], ["FILENAME"], ["open mode"]);
+
+for i = 1 to n do {
+    //example code here
+    y = y * x
+    x = y
+    y = 0
+    if x = y then {
+        //example code here
+        a = a + b
+        b = a
+        a = 0
+        printc(x, y, a) //console print
+        printf(a, y, x) //print to file
+    } 
+}
+
+i = 0
+while i < n do {
+    i++
+    printc(i, ' ')
+}
