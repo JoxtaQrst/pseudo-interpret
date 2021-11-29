@@ -9,10 +9,15 @@ int b
 x = x + 1
 x = x * 1
 x = 0
+y = 0
+y = y + 1
+a = 0
+b = 1
 
 //open a file in a variable. select filename. select an opening mode (r, w, rw, etc)
 fopen ([variable], ["FILENAME"], ["open mode"])
 
+int i
 for i = 1 to n do {
     //example code here
     y = y * x

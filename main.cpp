@@ -10,6 +10,7 @@ struct data {
     bool isVar = false; //check if the spot is taken
 } variable[255];        //an array for the variables. max 255 
 
+//creates a new variable in the struct above
 void CreateInteger(int value, char name[]) {
     int i = 0;
     while (variable[i].isVar && i < 255) {
@@ -18,7 +19,7 @@ void CreateInteger(int value, char name[]) {
             exit(400);
         }
         if (strcmp(variable[i].name, name) == 0) {
-            printf("Warning - variable %.*s is already defined. Setting value to 0.\n\n", strlen(name)-1, name);
+            printf("Warning - variable %.*s is already defined. Setting value to 0.\n\n", strlen(name), name);
             variable[i].value = 0;
             return ;
         }
@@ -32,7 +33,7 @@ void CreateInteger(int value, char name[]) {
     for (int k = 0; k < strlen(name); k++)
         variable[i].name[k] = name[k];
 
-    printf("Created variable %.*s of int type on position %d in struct. Value %d.\n\n", strlen(name)-1, name, i, value);
+    printf("Created variable %.*s of int type on position %d in struct. Value %d.\n\n", strlen(name), name, i, value);
 }
 
 //function to check if a certain key is the first part of the line
@@ -64,6 +65,18 @@ void CountLines(int &totalLine, int &codeLine, int &commentLine, char line[]) {
         codeLine++;
 }
 
+int CheckVar(data vars[], char key[]) {
+    //printf("/////////////////////////////////\n");
+    for (int i = 0; i < 6; i++) {
+        //printf("name in struct: <%s>\n", vars[i].name);
+
+        if (strcmp(vars[i].name, key) == 0)
+            return 1;
+    }
+    //printf("///////////////////////////////////\n");
+    return 0;
+}
+
 int main() {
     FILE *input = fopen("inputs/input.txt", "r");
 
@@ -88,7 +101,11 @@ int main() {
 
             //extract the variable name
             char name[16] = {0};
-            strcpy(name, line + 4);
+            //strcpy(name, line + 4);
+            int i = 4, k = 0;
+            while(i < strlen(line)-1) {
+                name[k++] = line[i++];
+            }
 
             CreateInteger(1, name);
         }//check if the line is an IF check
@@ -112,7 +129,8 @@ int main() {
                 first, extract the variable name, until the first space.
                 check if the name is found in the struct
                 if it is, "var" becomes true
-                if true, go past the space, past the equal and past the other space
+                if true, go past the space, 
+            past the equal and past the other space
                 after that, we have the expression
                 save the expression in another char array, which we will
             feed into a function to calculate everything
@@ -127,27 +145,25 @@ int main() {
             while (line[i++] == ' ' && i < strlen(line)) {} //will end at i+1
             i--;
             while (line[i] != ' ' && i < strlen(line)) {
-                printf("%s", line);
                 name[k++] = line[i++];
             }//will end at i+1 (on the first space after the name)
-            printf("%s\n", name);
+            //printf("name %s\n", name);
 
             //now we need to check if the name is found in the struct
-            for (int j = 0; j < 255; j++) {
-                if (strcmp(variable[i].name, name) == 0) {
-                    var = true;
-                    break;
-                }
-            }
+            var = CheckVar(variable, name);
             if (var) {
-                printf("Variable %.*s is defined.\n\n", strlen(name)-1, name);
+                printf("Variable %.*s is defined.\n", strlen(name), name);
             }
             else {
-                printf("Variable %.*s is not defined. Error on line %d.\n\n",
-                    strlen(name)-1, name, totalLine);
+                printf("Variable %.*s is not defined. Error on line %d.\n",
+                    strlen(name), name, totalLine);
+
+                printf("name <%s>\n", name);
+                //exit(200);
             }
-            //after the name, we have " = " so 3 chars. after that, we are in the expression
-            i += 2; //MIGHT BE 3 NEED TO CHECK
+            //after the name, we have " = " so 3 chars. 
+            //after that, we are in the expression
+            i += 3; //MIGHT BE 3 NEED TO CHECK
 
             //we are now in the expression and we will save it in an array
             k = 0;
@@ -155,8 +171,10 @@ int main() {
             while(i < strlen(line)) {
                 expression[k++] = line[i++];
             }
-            printf("Found expression %.*s = %.*s.\n\n", 
-                strlen(name)-1, name, strlen(expression)-1, expression);
+            printf("Found expression %.*s = %.*s on line %d.\n\n", 
+                strlen(name), name, 
+                strlen(expression)-1, expression, 
+                totalLine);
         
         }//if the line does not match any of the defined operations and is NOT empty and NOT a comment, error 1000
         else {
