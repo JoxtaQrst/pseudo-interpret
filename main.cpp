@@ -58,7 +58,6 @@ int FirstChars(char location[], char key[]) {
 }
 
 //function that counts lines. for debug purposes
-//use it to see if FirstChars() counts commented lines correctly
 void CountLines(int &totalLine, int &codeLine, int &commentLine, char line[]) {
     totalLine++;
     if (FirstChars(line, "//"))
@@ -67,6 +66,7 @@ void CountLines(int &totalLine, int &codeLine, int &commentLine, char line[]) {
         codeLine++;
 }
 
+//check if a var is part of the struct. returns pos in struct if found, (-1) if not found.
 int CheckVar(data vars[], char key[]) {
     //printf("/////////////////////////////////\n");
     for (int i = 0; i < 6; i++) {
@@ -76,7 +76,7 @@ int CheckVar(data vars[], char key[]) {
             return i;
     }
     //printf("///////////////////////////////////\n");
-    return 0;
+    return -1;
 }
 
 //function to calculate a given expression
@@ -118,7 +118,7 @@ int CalculateExpr(char expression[]) {
         i++;
     }
     if (isNum) {
-        for (int i = strlen(expression)-2; i >= 0; i--) {
+        for (int i = 0; i < strlen(expression); i++) {
             value = value * 10 + (expression[i] - 48); 
         }
         if (negative)
@@ -142,7 +142,54 @@ int CalculateExpr(char expression[]) {
             - function returns the value of the sum and goes back to the main equation, 
                 and var2 becomes the value above
         */
-        printf("Not a number. Expression: %.*s\n", strlen(expression)-1, expression);
+        printf("Not a number. Expression: %.*s\n", strlen(expression), expression);
+
+        //we need to save the first var/number
+        char var1[16] = {0};
+        int i = 0;
+        while (expression[i] != ' ' && i < strlen(expression)) {
+            var1[i] = expression[i];
+            i++;
+        }
+        printf("Found first variable: %s.\n", var1);
+
+        //we need to check if the expression is actually just of form x = y
+        if (strcmp(var1, expression) == 0) {
+            printf("Expression is of type [x = y].\n");
+            int poz = CheckVar(variable, var1);
+            if (poz != -1) {
+                printf("First variable is part of struct and has value %d.\n",
+                    variable[poz].value);
+                value = variable[poz].value;
+                printf("Assigned value %d.\n", value);
+
+                return value;
+            }
+        }
+        else { //if we dont have a form of x = y, we likely have a larger equation
+            /*
+                here's the types that i can think of:
+                    - x = x + 123
+                    - x = x + y
+                    - x = x * (y + z)
+                
+                for these, we must break it down into smaller steps. for example: x = x * (y + z)
+                    - var1 is x
+                    - var2 is (y + z)
+                    - operand is *
+                    - assign the value of var1 to value
+                    - var2 value = CalcExpression(var2)
+                    - now we are in var2 and we start calculating it the same
+            */
+            char var2[255] = {0};
+            strcpy(var2, expression+strlen(var1)+3);
+            printf("Found second variable: %s.\n", var2);
+
+            char op = expression[strlen(var1)+1];
+            printf("Found operand: %c.\n", op);
+        }
+
+        
     }
 
     return -1;
@@ -230,12 +277,12 @@ int main() {
                 //we are now in the expression and we will save it in an array
                 k = 0;
                 char expression[1023] = {0};
-                while(i < strlen(line)) {
+                while(i < strlen(line)-1) {
                     expression[k++] = line[i++];
                 }
                 printf("Found expression %.*s = %.*s on line %d.\n", 
                     strlen(name), name, 
-                    strlen(expression)-1, expression, 
+                    strlen(expression), expression, 
                     totalLine);
                 
                 int value = CalculateExpr(expression);
@@ -246,7 +293,7 @@ int main() {
                         strlen(variable[var].name), variable[var].name);
                 }
 
-                printf("\n");
+                printf("\n\n");
             }
             else {
                 printf("Variable %.*s is not defined. Error on line %d.\n",

@@ -1,3 +1,7 @@
 
 *.code-workspace
 *.exe
+.vscode/c_cpp_properties.json
+*.json
+*.o
+build/Debug/outDebug
