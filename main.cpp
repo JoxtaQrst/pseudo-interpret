@@ -104,6 +104,12 @@ int CalculateExpr(char expression[]) {
     int i = 0;
     char numbers[] = {"0123456789"};
     bool isNum = true;
+    bool negative = false;
+
+    if (expression[0] == '-') {
+        i++;
+        negative = true;
+    }
     while (i < strlen(expression)) {
         if (!strchr(numbers, expression[i++])) {
             isNum = false;
@@ -115,9 +121,28 @@ int CalculateExpr(char expression[]) {
         for (int i = strlen(expression)-2; i >= 0; i--) {
             value = value * 10 + (expression[i] - 48); 
         }
+        if (negative)
+            value = value * (-1);
 
-        printf("Assigned value %d.\n", value);
+        //printf("Assigned value %d.\n", value);
         return value;
+    }
+
+    //if it is not a number, it is certainly an expression
+    if (!isNum) {
+        /*
+            to calculate an equation, we have to split it as such: var1, operand, var2
+            var1 and var2, if not already a single variable, will become expressions
+
+            EXAMPLE: x * (y + 1)
+            - becomes var1 = x, operand *, var2 = y + 1
+            - feed var2 as a new expression to the function
+            - equation is y + 1
+            - var1 is y, operand +, var2 is 1
+            - function returns the value of the sum and goes back to the main equation, 
+                and var2 becomes the value above
+        */
+        printf("Not a number. Expression: %.*s\n", strlen(expression)-1, expression);
     }
 
     return -1;
