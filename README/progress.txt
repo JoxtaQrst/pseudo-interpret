@@ -14,9 +14,11 @@ TO - DO, for now:
     * calculate math expressions (WIP)
         /\ to calculate the expression we must:
             1. extract the expression and put it in a char array - DONE
-            2. check if the var is defined - WIP
-            3. find a way to use the variables and numbers
-            4. take care of the signs
-            5. take care of the parantheses
+            2. check if the var is defined - DONE
+            3. find a way to use the variables and numbers - mostly DONE
+            4. take care of the signs - DONE
+            5. take care of the parantheses - mostly DONE
+                the equation calculator MOSTLY works for now. it was designed for two terms, 
+            but works for more than two. var2 takes the rest of the equation and becomes a subeq.
     * delete useless comment lines that were once used as debug (my code is not clean and it looks bad)
     

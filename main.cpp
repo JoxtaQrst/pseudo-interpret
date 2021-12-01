@@ -228,7 +228,7 @@ int CalculateExpr(char expression[]) {
                 }
             }
             else {
-                while (expression[i] != ' ' && i < strlen(expression)) {
+                while (i < strlen(expression)) {
                     var2[k] = expression[i];
                     i++;
                     k++;
@@ -239,7 +239,7 @@ int CalculateExpr(char expression[]) {
             int valueVar1 = CalculateExpr(var1);
             //calculate var2
             int valueVar2 = CalculateExpr(var2);
-            
+
             printf("First var %s with value %d.\n", var1, valueVar1);
             printf("Found second variable %s with value %d.\n", var2, valueVar2);
 
