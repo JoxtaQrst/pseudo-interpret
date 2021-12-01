@@ -103,6 +103,7 @@ int CalculateExpr(char expression[]) {
     //check if the expression is a number
     int i = 0;
     char numbers[] = {"0123456789"};
+    char operands[] = {"+-*/"};
     bool isNum = true;
     bool negative = false;
 
@@ -142,26 +143,42 @@ int CalculateExpr(char expression[]) {
             - function returns the value of the sum and goes back to the main equation, 
                 and var2 becomes the value above
         */
-        printf("Not a number. Expression: %.*s\n", strlen(expression), expression);
+        //printf("Not a number. Expression: %.*s\n", strlen(expression), expression);
 
         //we need to save the first var/number
-        char var1[16] = {0};
+        char var1[255] = {0};
         int i = 0;
-        while (expression[i] != ' ' && i < strlen(expression)) {
-            var1[i] = expression[i];
+        int k = 0;
+        bool paranthesesVar1 = false;
+        if (expression[0] == '(') {
             i++;
+            paranthesesVar1 = true;
         }
-        printf("Found first variable: %s.\n", var1);
+        if (paranthesesVar1) {
+            while (i < strlen(expression) && expression[i] != ')') {
+                var1[k] = expression[i];
+                i++;
+                k++;
+            }
+        }
+        else {
+            while (expression[i] != ' ' && i < strlen(expression)) {
+                var1[k] = expression[i];
+                i++;
+                k++;
+            }
+        }
+        //printf("Found first variable: %s.\n", var1);
 
         //we need to check if the expression is actually just of form x = y
         if (strcmp(var1, expression) == 0) {
-            printf("Expression is of type [x = y].\n");
+            //printf("Expression is of type [x = y].\n");
             int poz = CheckVar(variable, var1);
             if (poz != -1) {
-                printf("First variable is part of struct and has value %d.\n",
-                    variable[poz].value);
+                //printf("First variable is part of struct and has value %d.\n",
+                    //variable[poz].value);
                 value = variable[poz].value;
-                printf("Assigned value %d.\n", value);
+                //printf("Assigned value %d.\n", value);
 
                 return value;
             }
@@ -178,18 +195,71 @@ int CalculateExpr(char expression[]) {
                     - var2 is (y + z)
                     - operand is *
                     - assign the value of var1 to value
-                    - var2 value = CalcExpression(var2)
+                    - var2 value = CalculateExpr(var2)
                     - now we are in var2 and we start calculating it the same
             */
+
+            //extract operand
+            i = strlen(var1);
+            char op;
+            while (i < strlen(expression)) {
+                if (strchr(operands, expression[i])) {
+                    op = expression[i];
+                    printf("Found operand: %c.\n", op);
+                    break;
+                }
+                i++;
+            }
+
+            //extract var2
             char var2[255] = {0};
-            strcpy(var2, expression+strlen(var1)+3);
-            printf("Found second variable: %s.\n", var2);
+            k = 0;
+            i += 2;
+            bool paranthesesVar2 = false;
+            if (expression[i] == '(') {
+                i++;
+                paranthesesVar2 = true;
+            }
+            if (paranthesesVar2) {
+                while (i < strlen(expression) && expression[i] != ')') {
+                    var2[k] = expression[i];
+                    i++;
+                    k++;
+                }
+            }
+            else {
+                while (expression[i] != ' ' && i < strlen(expression)) {
+                    var2[k] = expression[i];
+                    i++;
+                    k++;
+                }
+            }
 
-            char op = expression[strlen(var1)+1];
-            printf("Found operand: %c.\n", op);
+            //calculate var1
+            int valueVar1 = CalculateExpr(var1);
+            //calculate var2
+            int valueVar2 = CalculateExpr(var2);
+            
+            printf("First var %s with value %d.\n", var1, valueVar1);
+            printf("Found second variable %s with value %d.\n", var2, valueVar2);
+
+
+            switch (op) {
+                case '+':
+                    value = CalculateExpr(var1) + CalculateExpr(var2);
+                    break;
+                case '-':
+                    value = CalculateExpr(var1) - CalculateExpr(var2);
+                    break;
+                case '*':
+                    value = CalculateExpr(var1) * CalculateExpr(var2);
+                    break;
+                case '/':
+                    value = CalculateExpr(var1) / CalculateExpr(var2);
+                    break;
+            }
+            return value;
         }
-
-        
     }
 
     return -1;
@@ -270,7 +340,8 @@ int main() {
             //now we need to check if the name is found in the struct
             var = CheckVar(variable, name);
             if (var >= 0) {
-                printf("Variable %.*s is defined.\n", strlen(name), name);//after the name, we have " = " so 3 chars. 
+                printf("Variable %s is defined and is equal to %d.\n", 
+                    name, variable[var].value);//after the name, we have " = " so 3 chars. 
                 //after that, we are in the expression
                 i += 3; //MIGHT BE 3 NEED TO CHECK
 
