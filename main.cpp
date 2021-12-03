@@ -154,6 +154,7 @@ int CalculateExpr(char expression[]) {
     if (leftPar1 && rightPar1) {
         for (int j = 1; j < i-1; j++)
             var1[j-1] = expression[j];
+        printf("Paranth: %s\n", var1);
     }
     else {
         while (i < strlen(expression) && expression[i] != ' ') {
@@ -187,6 +188,10 @@ int CalculateExpr(char expression[]) {
             strcpy(var2, aux);
             valueVar2 = GetValue(var2);
             isVal2 = true;
+            if (IsNumber(var1) == -1 && CheckVar(variable, var1) == -1) {
+                valueVar1 = CalculateExpr(var1);
+                isVal1 = true;
+            }
             //printf("Var1 is %s, value %d. Var2 is %s, value %d\n", var1, valueVar1, var2, valueVar2);
             if (op == '*')
                 return valueVar1 * valueVar2;
