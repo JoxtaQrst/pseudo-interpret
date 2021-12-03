@@ -8,6 +8,7 @@ struct data {
     int value;          //value of the variable
     char name[16];      //the name of our variable. max 16 chars
     bool isVar = false; //check if the spot is taken
+    bool isNeg = false; //check if nr is negative
 } variable[255];        //an array for the variables. max 255 
 
 //creates a new variable in the struct above
@@ -79,42 +80,20 @@ int CheckVar(data vars[], char key[]) {
     return -1;
 }
 
-//function to calculate a given expression
-int CalculateExpr(char expression[]) {
-    /*
-        an expression is composed of variables or numbers and operands, such as:
-            ~ multiplication - *
-            ~ division - /
-            ~ modulo - %
-            ~ addition - +
-            ~ subtraction - -
-    
-        to calculate the expressions, we will use this large function 
-    which will return or provide the data to other functions (or itself)
-        we will use functions:
-            ~ add()
-            ~ subtract()
-            ~ divide()
-            ~ modulo()
-            ~ multiply()
-    */
-    int value = 0;
-
-    //check if the expression is a number
-    int i = 0;
+//check if a var is a number and return its positive value. return -1 if not
+int IsNumber(char expression[]) {
     char numbers[] = {"0123456789"};
-    char operands[] = {"+-*/"};
     bool isNum = true;
-    bool negative = false;
+    int i = 0;
+    int value = 0;
 
     if (expression[0] == '-') {
         i++;
-        negative = true;
     }
     while (i < strlen(expression)) {
         if (!strchr(numbers, expression[i++])) {
             isNum = false;
-            break;
+            return -1;
         }
         i++;
     }
@@ -122,147 +101,186 @@ int CalculateExpr(char expression[]) {
         for (int i = 0; i < strlen(expression); i++) {
             value = value * 10 + (expression[i] - 48); 
         }
-        if (negative)
-            value = value * (-1);
 
         //printf("Assigned value %d.\n", value);
         return value;
     }
 
-    //if it is not a number, it is certainly an expression
-    if (!isNum) {
-        /*
-            to calculate an equation, we have to split it as such: var1, operand, var2
-            var1 and var2, if not already a single variable, will become expressions
+    return -1;
+}
 
-            EXAMPLE: x * (y + 1)
-            - becomes var1 = x, operand *, var2 = y + 1
-            - feed var2 as a new expression to the function
-            - equation is y + 1
-            - var1 is y, operand +, var2 is 1
-            - function returns the value of the sum and goes back to the main equation, 
-                and var2 becomes the value above
-        */
-        //printf("Not a number. Expression: %.*s\n", strlen(expression), expression);
+int GetValue(char var[]) {
+    int value;
+    if (IsNumber(var) >= 0) {
+        value = IsNumber(var);
+    }
+    else if (CheckVar(variable, var) >= 0) {
+        int poz = CheckVar(variable, var);
+        value = variable[poz].value;
+        if (variable[poz].isNeg)
+            value *= (-1);
+    }
 
-        //we need to save the first var/number
-        char var1[255] = {0};
-        int i = 0;
-        int k = 0;
-        bool paranthesesVar1 = false;
-        if (expression[0] == '(') {
+    return value;
+}
+
+//function to calculate a given expression
+int CalculateExpr(char expression[]) {
+    int value = 0;
+    int valueVar1 = 0;
+    int valueVar2 = 0;
+    char op;
+    char var1[255] = {0};
+    char var2[255] = {0};
+    bool isVal1 = false;
+    bool isVal2 = false;
+
+    //get var1
+    int i = 0;
+    int k = 0;
+    int leftPar1 = 0, rightPar1 = 0;
+    if (expression[i] == '(') {
+        while (i < strlen(expression)) {
+            if (expression[i] == '(')
+                leftPar1++;
+            if (expression[i] == ')')
+                rightPar1++;
+            if (leftPar1 == rightPar1)
+                break;
             i++;
-            paranthesesVar1 = true;
         }
-        if (paranthesesVar1) {
-            while (i < strlen(expression) && expression[i] != ')') {
-                var1[k] = expression[i];
-                i++;
-                k++;
-            }
+        i++;
+    }
+    if (leftPar1 && rightPar1) {
+        for (int j = 1; j < i-1; j++)
+            var1[j-1] = expression[j];
+    }
+    else {
+        while (i < strlen(expression) && expression[i] != ' ') {
+            var1[i] = expression[i];
+            i++;
         }
-        else {
-            while (expression[i] != ' ' && i < strlen(expression)) {
-                var1[k] = expression[i];
-                i++;
-                k++;
+        if (IsNumber(var1) || CheckVar(variable, var1)) {
+            valueVar1 = GetValue(var1);
+            isVal1 = true;
+            //printf("isVal1\n");
+            if (strlen(var1) == strlen(expression)) {
+                return valueVar1;
             }
-        }
-        //printf("Found first variable: %s.\n", var1);
-
-        //we need to check if the expression is actually just of form x = y
-        if (strcmp(var1, expression) == 0) {
-            //printf("Expression is of type [x = y].\n");
-            int poz = CheckVar(variable, var1);
-            if (poz != -1) {
-                //printf("First variable is part of struct and has value %d.\n",
-                    //variable[poz].value);
-                value = variable[poz].value;
-                //printf("Assigned value %d.\n", value);
-
-                return value;
-            }
-        }
-        else { //if we dont have a form of x = y, we likely have a larger equation
-            /*
-                here's the types that i can think of:
-                    - x = x + 123
-                    - x = x + y
-                    - x = x * (y + z)
-                
-                for these, we must break it down into smaller steps. for example: x = x * (y + z)
-                    - var1 is x
-                    - var2 is (y + z)
-                    - operand is *
-                    - assign the value of var1 to value
-                    - var2 value = CalculateExpr(var2)
-                    - now we are in var2 and we start calculating it the same
-            */
-
-            //extract operand
-            i = strlen(var1);
-            char op;
-            while (i < strlen(expression)) {
-                if (strchr(operands, expression[i])) {
-                    op = expression[i];
-                    printf("Found operand: %c.\n", op);
-                    break;
-                }
-                i++;
-            }
-
-            //extract var2
-            char var2[255] = {0};
-            k = 0;
-            i += 2;
-            bool paranthesesVar2 = false;
-            if (expression[i] == '(') {
-                i++;
-                paranthesesVar2 = true;
-            }
-            if (paranthesesVar2) {
-                while (i < strlen(expression) && expression[i] != ')') {
-                    var2[k] = expression[i];
-                    i++;
-                    k++;
-                }
-            }
-            else {
-                while (i < strlen(expression)) {
-                    var2[k] = expression[i];
-                    i++;
-                    k++;
-                }
-            }
-
-            //calculate var1
-            int valueVar1 = CalculateExpr(var1);
-            //calculate var2
-            int valueVar2 = CalculateExpr(var2);
-
-            printf("First var %s with value %d.\n", var1, valueVar1);
-            printf("Found second variable %s with value %d.\n", var2, valueVar2);
-
-
-            switch (op) {
-                case '+':
-                    value = CalculateExpr(var1) + CalculateExpr(var2);
-                    break;
-                case '-':
-                    value = CalculateExpr(var1) - CalculateExpr(var2);
-                    break;
-                case '*':
-                    value = CalculateExpr(var1) * CalculateExpr(var2);
-                    break;
-                case '/':
-                    value = CalculateExpr(var1) / CalculateExpr(var2);
-                    break;
-            }
-            return value;
         }
     }
 
-    return -1;
+    //get operand
+    while (expression[i] == ' ')
+        i++;
+    op = expression[i];
+    
+    while (expression[i] != ' ')
+        i++;
+    i++;
+    //if operand is * or / we need an intermediate value
+    if (op == '*' || op == '/') {
+        //first, if var2 is just a number or simple var, do a simple calc
+        char aux[255] = {0};
+        strcat(aux, expression+i);
+        if (IsNumber(aux) >= 0 || CheckVar(variable, aux) >= 0) {
+            strcpy(var2, aux);
+            valueVar2 = GetValue(var2);
+            isVal2 = true;
+            //printf("Var1 is %s, value %d. Var2 is %s, value %d\n", var1, valueVar1, var2, valueVar2);
+            if (op == '*')
+                return valueVar1 * valueVar2;
+            else if (op == '/')
+                return valueVar1 / valueVar2;
+        }
+
+        while(expression[i] == ' ')
+            i++;
+        char varAux[255] = {0};
+        int leftParAux = 0, rightParAux = 0;
+        k = i;
+        if (expression[i] == '(') {
+            while (i < strlen(expression)) {
+                if (expression[i] == '(')
+                    leftParAux++;
+                if (expression[i] == ')')
+                    rightParAux++;
+                if (leftParAux == rightParAux)
+                    break;
+                i++;
+            }
+            if (leftParAux && rightParAux) {
+                int j = 0;
+                while (k < i) {
+                    varAux[j++] = expression[k++]; 
+                }
+                i++;
+
+                strcat(var1, varAux);
+                isVal1 = false;
+            }
+        }
+        else {
+            char varAux[255] = {0};
+            //printf("REST1 %s\n", expression+i);
+            while (expression[i] == ' ')
+                i++;
+            int k = 0;
+            while (expression[i] != ' ') {
+                varAux[k] = expression[i];
+                k++;
+                i++;
+            }
+            char help[1];
+            help[0] = op;
+            strcat(var1, " ");
+            var1[strlen(var1)] = op;
+            strcat(var1, " "); 
+            strcat(var1, varAux);
+            i++;
+            isVal1 = false;
+        }
+        while (expression[i] != ' ')
+            i++;
+        i--;
+        //printf("%c%c%c\n", expression[i-1], expression[i], expression[i+1]);
+        op = expression[i];
+        i++;
+        while (expression[i] != ' ')
+            i++;
+        i++;
+    }
+    printf("First var: %s\n", var1);
+    printf("Operand: %c\n", op);
+
+    strcat(var2, expression+i);
+    printf("Second var: %s\n", var2);
+
+    if (!isVal1) {
+        valueVar1 = CalculateExpr(var1);
+        //printf("var1?\n");
+    }
+    if (!isVal2) {
+        valueVar2 = CalculateExpr(var2);
+    }
+    //printf("Value var1: %d\n", valueVar1);
+    //printf("Value var2: %d\n", valueVar2);
+    switch (op) {
+        case '*':
+            value = valueVar1 * valueVar2;
+            return value;
+        case '/':
+            value = valueVar1 * valueVar2;
+            return value;
+        case '+':
+            value = valueVar1 + valueVar2;
+            return value;
+        case '-':
+            value = valueVar1 - valueVar2;
+            return value;
+    }
+
+    return 0;
 }
 
 int main() {
@@ -371,7 +389,7 @@ int main() {
                     strlen(name), name, totalLine);
 
                 printf("name <%s>\n", name);
-                //exit(200);
+                exit(200);
             }
         
         }//if the line does not match any of the defined operations and is NOT empty and NOT a comment, error 1000

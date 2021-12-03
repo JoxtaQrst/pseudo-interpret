@@ -1,0 +1,218 @@
+int CalculateExpr(char expression[], bool isParantheses) {
+    int value = 0;
+    int poz = CheckVar(variable, expression);
+    //if the expression is a variable, return its value
+    if (poz != -1) {
+        value = variable[poz].value;
+        return value;
+    }
+
+    //if expression is a number, return its value
+    bool isNum = true;
+    int i = 0;
+    int k = 0;
+    bool negative = false;
+    if (expression[0] == '-') {
+        i++;
+        negative = true;
+    }
+    value = IsNumber(expression);
+    if (value >= 0) {
+        if (negative)
+            value *= (-1);
+        
+        return value;
+    }
+
+    //if is not a number, we have an expression and we calculate it step by step
+    int valueVar1 = 0;
+    int valueVar2 = 0;
+    char var1[255] = {0};
+    char var2[255] = {0};
+    char operands[] = {"+-*/"};
+    char op;
+
+    //GET VARIABLES AND OPERAND
+    //get first var, until space
+    i = 0;
+    bool isPar1 = false;
+    int countLeftPar1 = 0;
+    int countRightPar1 = 0;
+    if (expression[0] == '(') {
+        isPar1 = true;
+        int z = i;
+        while (z < strlen(expression)) {
+            if (expression[z] == '(') {
+                countLeftPar1++;
+            }
+            if (expression[z] == ')') {
+                countRightPar1++;
+            }
+            if (countRightPar1 == countLeftPar1) {
+                //printf("left %d right %d\n", countLeftPar1, countRightPar1);
+                break;
+            }
+            z++;
+        }
+    }
+    if (!isPar1) {
+        while (expression[i] != ' ' && i < strlen(expression)) {
+            var1[i] = expression[i];
+            i++;
+        }
+        valueVar1 = CalculateExpr(var1, false);
+        printf("First var: %s value %d\n", var1, valueVar1);
+    }
+    else {
+        char inPar[255] = {0};
+        i++;
+        k = 0;
+        int auxPar = 0;
+        while (auxPar <= countLeftPar1 && i < strlen(expression)) {
+            if (expression[i] == ')')
+                auxPar++;
+            if (auxPar == countLeftPar1)
+                break;
+            inPar[k] = expression[i];
+            i++;
+            k++;
+        }
+        valueVar1 = CalculateExpr(inPar, false);
+        printf("Found first: (%s) value %d\n", inPar, valueVar1);
+        i++;
+    }
+
+    //get operand
+    i++;
+    op = expression[i];
+    printf("Operand: %c\n", op);
+
+    //get var2. we will get var2 until the end of line
+    strcpy(var2, expression+i+2);
+    valueVar2 = CalculateExpr(var2, false);
+    printf("Second var: %s value %d\n", var2, valueVar2);
+   /*
+    i += 2;
+    k = 0;
+    bool isPar2 = false;
+    int countLeftPar2 = 0;
+    int countRightPar2 = 0;
+    if (expression[i] == '(') {
+        isPar2 = true;
+        int z = i;
+        while(z < strlen(expression)) {
+            if (expression[z] == '(') {
+                countLeftPar2++;
+            }
+            if (expression[z] == ')') {
+                countRightPar2++;
+            }
+            if (countRightPar2 == countLeftPar2)
+                break;
+            z++;
+        }
+    }
+    if (!isPar2) {
+        while (i < strlen(expression)) {
+            var2[k] = expression[i];
+            i++;
+            k++;
+        }
+        printf("Second var: %s\n", var2);
+    }
+    else {
+        char inPar[255] = {0};
+        i++;
+        k = 0;
+        int auxPar = 0;
+        while (auxPar <= countLeftPar2 && i < strlen(expression)) {
+            if (expression[i] == ')')
+                auxPar++;
+            if (auxPar == countLeftPar2)
+                break;
+            inPar[k] = expression[i];
+            i++;
+            k++;
+        }
+        if (i < strlen(expression)) {
+            strcpy(inPar+1, inPar);
+            inPar[0] = '(';
+            strcat(inPar, expression+i);
+        }
+        printf("Found second: %s\n", inPar);
+        valueVar2 = CalculateExpr(inPar, false);
+        i++;
+    }
+   */
+
+    //IF OPERAND IS * OR /, we will check if we multiply simple vars and number
+    if (op == '*' || op == '/') {
+        //CHECK IF SIMPLE VARS
+        bool isVar1 = false;
+        bool isVar2 = false;
+        bool isNum1 = false;
+        bool isNum2 = false;
+        
+        //var1
+        if (CheckVar(variable, var1) >= 0) {
+            isVar1 = true;
+            valueVar1 = CalculateExpr(var1, false);
+        }
+        else {
+            int auxValue = IsNumber(var1);
+            printf("aux %d\n", auxValue);
+            if (auxValue >= 0) {
+                valueVar1 = auxValue;
+
+                if (var1[0] == '-')
+                    valueVar1 *= (-1);
+            }
+        }
+        //var2
+        if (CheckVar(variable, var2) >= 0) {
+            isVar2 = true;
+            valueVar2 = CalculateExpr(var2, false);
+        }
+        else {
+            int auxValue = IsNumber(var2);
+            if (auxValue >= 0) {
+                valueVar2 = auxValue;
+
+                if (var2[0] == '-')
+                    valueVar2 *= (-1);
+            }
+        }
+
+        //if both vars are recognized vars or numbers, get each value and calculate the equation
+        //var1 should always be a var or number
+        if ( (isVar1 || isNum1) && (isVar2 || isNum2) ) {
+            if (op == '*') {
+                value = valueVar1 * valueVar2;
+                return value;
+            }
+            else if (op == '/') {
+                value = valueVar1 / valueVar2;
+                return value;
+            }
+        }
+        else if (!isVar2 && !isNum2) {
+            //if var2 is neither a number nor a var, then we check if its a subequation
+            //or if its just a string of things
+            
+        }
+    }
+    else if (op == '+' || op == '-') {
+        if (op == '+') {
+            valueVar1 = CalculateExpr(var1, false);
+            valueVar2 = CalculateExpr(var2, false);
+            value = valueVar1 + valueVar2;
+        }
+        if (op == '-') {
+            valueVar1 = CalculateExpr(var1, false);
+            valueVar2 = CalculateExpr(var2, false);
+            value = valueVar1 - valueVar2;
+        }
+
+        return value;
+    }
+}
