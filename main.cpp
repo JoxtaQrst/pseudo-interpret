@@ -70,7 +70,7 @@ void CountLines(int &totalLine, int &codeLine, int &commentLine, char line[]) {
 //check if a var is part of the struct. returns pos in struct if found, (-1) if not found.
 int CheckVar(data vars[], char key[]) {
     //printf("/////////////////////////////////\n");
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 255; i++) {
         //printf("name in struct: <%s>\n", vars[i].name);
 
         if (strcmp(vars[i].name, key) == 0)
@@ -181,79 +181,83 @@ int CalculateExpr(char expression[]) {
     i++;
     //if operand is * or / we need an intermediate value
     if (op == '*' || op == '/') {
-        //first, if var2 is just a number or simple var, do a simple calc
-        char aux[255] = {0};
-        strcat(aux, expression+i);
-        if (IsNumber(aux) >= 0 || CheckVar(variable, aux) >= 0) {
-            strcpy(var2, aux);
-            valueVar2 = GetValue(var2);
-            isVal2 = true;
-            if (IsNumber(var1) == -1 && CheckVar(variable, var1) == -1) {
-                valueVar1 = CalculateExpr(var1);
-                isVal1 = true;
-            }
-            //printf("Var1 is %s, value %d. Var2 is %s, value %d\n", var1, valueVar1, var2, valueVar2);
-            if (op == '*')
-                return valueVar1 * valueVar2;
-            else if (op == '/')
-                return valueVar1 / valueVar2;
-        }
-
-        while(expression[i] == ' ')
-            i++;
-        char varAux[255] = {0};
-        int leftParAux = 0, rightParAux = 0;
-        k = i;
-        if (expression[i] == '(') {
-            while (i < strlen(expression)) {
-                if (expression[i] == '(')
-                    leftParAux++;
-                if (expression[i] == ')')
-                    rightParAux++;
-                if (leftParAux == rightParAux)
-                    break;
-                i++;
-            }
-            if (leftParAux && rightParAux) {
-                int j = 0;
-                while (k < i) {
-                    varAux[j++] = expression[k++]; 
+        while (op == '*' || op == '/') {
+            //printf("helpmeee\n");
+            //first, if var2 is just a number or simple var, do a simple calc
+            char aux[255] = {0};
+            strcat(aux, expression+i);
+            if (IsNumber(aux) >= 0 || CheckVar(variable, aux) >= 0) {
+                strcpy(var2, aux);
+                valueVar2 = GetValue(var2);
+                isVal2 = true;
+                if (IsNumber(var1) == -1 && CheckVar(variable, var1) == -1) {
+                    valueVar1 = CalculateExpr(var1);
+                    isVal1 = true;
                 }
-                i++;
+                //printf("Var1 is %s, value %d. Var2 is %s, value %d\n", var1, valueVar1, var2, valueVar2);
+                if (op == '*')
+                    return valueVar1 * valueVar2;
+                else if (op == '/')
+                    return valueVar1 / valueVar2;
+            }
 
-                strcat(var1, varAux);
-                isVal1 = false;
-            }
-        }
-        else {
+            while(expression[i] == ' ')
+                i++;
             char varAux[255] = {0};
-            //printf("REST1 %s\n", expression+i);
-            while (expression[i] == ' ')
-                i++;
-            int k = 0;
-            while (expression[i] != ' ') {
-                varAux[k] = expression[i];
-                k++;
-                i++;
+            int leftParAux = 0, rightParAux = 0;
+            k = i;
+            if (expression[i] == '(') {
+                while (i < strlen(expression)) {
+                    if (expression[i] == '(')
+                        leftParAux++;
+                    if (expression[i] == ')')
+                        rightParAux++;
+                    if (leftParAux == rightParAux)
+                        break;
+                    i++;
+                }
+                if (leftParAux && rightParAux) {
+                    int j = 0;
+                    while (k < i) {
+                        varAux[j++] = expression[k++]; 
+                    }
+                    i++;
+
+                    strcat(var1, varAux);
+                    isVal1 = false;
+                }
             }
-            char help[1];
-            help[0] = op;
-            strcat(var1, " ");
-            var1[strlen(var1)] = op;
-            strcat(var1, " "); 
-            strcat(var1, varAux);
+            else {
+                char varAux[255] = {0};
+                //printf("REST1 %s\n", expression+i);
+                while (expression[i] == ' ')
+                    i++;
+                int k = 0;
+                while (expression[i] != ' ') {
+                    varAux[k] = expression[i];
+                    k++;
+                    i++;
+                }
+                char help[1];
+                help[0] = op;
+                strcat(var1, " ");
+                var1[strlen(var1)] = op;
+                strcat(var1, " "); 
+                strcat(var1, varAux);
+                i++;
+                isVal1 = false;
+                //printf("HELP %s\n", var1);
+            }
+            while (expression[i] != ' ')
+                i++;
+            i--;
+            //printf("%c%c%c\n", expression[i-1], expression[i], expression[i+1]);
+            op = expression[i];
             i++;
-            isVal1 = false;
+            while (expression[i] != ' ')
+                i++;
+            i++;
         }
-        while (expression[i] != ' ')
-            i++;
-        i--;
-        //printf("%c%c%c\n", expression[i-1], expression[i], expression[i+1]);
-        op = expression[i];
-        i++;
-        while (expression[i] != ' ')
-            i++;
-        i++;
     }
     printf("First var: %s\n", var1);
     printf("Operand: %c\n", op);

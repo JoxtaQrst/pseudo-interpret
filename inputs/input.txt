@@ -9,20 +9,24 @@ int b
 x = x + 1
 y = 15
 
-//below eq should be 51
-x = (y * 3) + x + (2 * x) + 1 + 1 + 1
+//below eq should be 66
+x = y * 2 * 2 + x + (2 * x) + 1 + 1 + 1
+//below should be 24 + 6 + 100 = 130
+int r
+r = 2 * 3 * 4 + 1 + 2 + 3 + 5 * 10 * 2
 
 int z
 x = 1
 z = (x * 2 + y + 2 + 1 * y - 1) * 2
 z = z / 2
+z = 2 * 2 + 1
 
 y = 1
 x = 2
 y = y * x
 a = 0
 b = 1
-//example of broken equation: x = x * 2 + y.
+//example of broken equation: x = 2 * 2 * 2 + 1
 
 //open a file in a variable. select filename. select an opening mode (r, w, rw, etc)
 fopen ([variable], ["FILENAME"], ["open mode"])
