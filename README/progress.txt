@@ -4,6 +4,10 @@ What we have so far:
         * function which checks if the first chars in a line are whatever we want them to be
         * function which helps declare an integer in the struct and checks if the int is already declared
         * function to count lines
+        * function to check if is number
+        * function to check if is variable
+        * function to get value of var/number
+        * function which calculates expressions
     - check if a line is code or comment and count them. (line number is used to print errors)
     - extract int variables and save them in a struct containing:
         * name
@@ -11,14 +15,9 @@ What we have so far:
         * bool value which represents whether or not the position is used
 
 TO - DO, for now:
-    * calculate math expressions (WIP)
-        /\ to calculate the expression we must:
-            1. extract the expression and put it in a char array - DONE
-            2. check if the var is defined - DONE
-            3. find a way to use the variables and numbers - mostly DONE
-            4. take care of the signs - DONE
-            5. take care of the parantheses - mostly DONE
-                the equation calculator MOSTLY works for now. it was designed for two terms, 
-            but works for more than two. var2 takes the rest of the equation and becomes a subeq.
+    * interpret for
+    * interpret while
+    * interpret if
+    * and take care of {}
     * delete useless comment lines that were once used as debug (my code is not clean and it looks bad)
     
